@@ -63,3 +63,6 @@ target/
 
 # IDE things
 .idea
+
+# IP2Location things
+data/*.bin

@@ -91,5 +91,38 @@ def distance(address=None):
     return Response(json.dumps(results), mimetype='application/json')
 
 
+@app.route('/details')
+@app.route('/details/<address>')
+def details(address=None):
+    results = {}
+
+    # Provide a local or default address to use if one was not provided
+    if address == "server":
+        address = load(urlopen('http://httpbin.org/ip'))['origin']
+    if address is None:
+        address = "8.8.8.8"
+
+    # Provide feedback to user if the address given isn't a valid formatted address
+    try:
+        address = IPAddress(address)
+    except Exception, e:
+        results['error'] = e.message
+        return Response(json.dumps(results), mimetype='application/json')
+
+    # Provide feedback to user if the address given isn't a valid public address
+    if address.is_private():
+        results['error'] = "The address provided or detected is not a valid public IP address"
+        return Response(json.dumps(results), mimetype='application/json')
+
+    address_details = location.get_all(address)
+    results['ipAddress'] = address
+    results['countryCode'] = address_details.country_short
+    results['countryName'] = address_details.country_long
+    results['cityName'] = address_details.city
+    results['regionName'] = address_details.region
+
+    return Response(json.dumps(results), mimetype='application/json')
+
+
 if __name__ == '__main__':
     app.run()
